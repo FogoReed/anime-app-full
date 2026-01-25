@@ -1,0 +1,391 @@
+/* static/css/style.css (добавлен transition для плавного открытия, улучшено выравнивание: flex-wrap для жанров, overflow: hidden для текста если нужно, но по умолчанию wrap) */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Comfortaa', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    min-height: 100vh;
+}
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+h1 {
+    text-align: center;
+    font-size: 3.5rem;
+    margin-bottom: 30px;
+    text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.search-box {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+#search-input {
+    flex: 1;
+    padding: 18px 20px;
+    font-size: 1.2rem;
+    border: none;
+    border-radius: 50px;
+    outline: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+#random-btn {
+    padding: 18px 30px;
+    font-size: 1.1rem;
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+#random-btn:hover { background: #ff5252; transform: translateY(-3px); }
+
+#toggle-filters {
+    display: block;
+    margin: 0 auto 20px;
+    padding: 12px 25px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+/* УБИРАЕМ ВСЁ СТАРОЕ про .filters и вставляем это: */
+.filters {
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    margin-bottom: 30px;
+    overflow: hidden;                /* Важно! */
+    transition: all 0.6s ease-in-out;
+    max-height: 2000px;              /* Открыто */
+    opacity: 1;
+    padding: 20px;
+}
+
+.filters.closed {
+    max-height: 0;                   /* Закрыто */
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+}
+
+/* Чтобы при закрытии не было видно контента */
+.filters > * {
+    transition: opacity 0.3s ease-in-out;
+}
+.filters.closed > * {
+    opacity: 0;
+}
+
+/* Остальное оставь как было, просто добавь эти стили для жанров (красиво в 3 колонки) */
+.genres-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 20px;
+    max-height: 320px;
+    overflow-y: auto;
+    padding: 12px;
+    background: rgba(0,0,0,0.15);
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+.genres-list label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.95rem;
+}
+
+#apply-filters {
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 25px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+}
+.card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: all 0.4s;
+    cursor: pointer;
+}
+.card:hover {
+    transform: translateY(-15px) scale(1.03);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.card img {
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+}
+.card-info {
+    padding: 18px;
+}
+.card-title {
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+.card-meta {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    margin-bottom: 10px;
+}
+.card-synopsis {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    opacity: 0.85;
+}
+
+.loading {
+    text-align: center;
+    font-size: 1.5rem;
+    padding: 40px;
+}
+.error {
+    background: rgba(255,0,0,0.2);
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 20px 0;
+}
+.pagination {
+    text-align: center;
+    margin: 40px 0;
+}
+.pagination button {
+    padding: 12px 25px;
+    margin: 0 10px;
+    background: rgba(255,255,255,0.2);
+    border: none;
+    border-radius: 50px;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+.hidden { display: none; }
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: rgba(30,30,50,0.95);
+    backdrop-filter: blur(10px);
+    padding: 40px;
+    border-radius: 20px;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+}
+
+.modal h2 {
+    margin-bottom: 20px;
+    color: #ff6b6b;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin: 30px 0;
+}
+
+.btn-yes, .btn-no {
+    padding: 14px 32px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-yes {
+    background: #ff4444;
+    color: white;
+}
+
+.btn-yes:hover { background: #e63939; transform: scale(1.05); }
+
+.btn-no {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-no:hover { background: #45a049; transform: scale(1.05); }
+
+.remember {
+    display: block;
+    margin-top: 20px;
+    color: #aaa;
+    font-size: 0.95rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#theme-toggle {
+    font-size: 1.8rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+}
+
+body[data-theme="light"] {
+    background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+    color: #333;
+}
+
+body[data-theme="light"] .container,
+body[data-theme="light"] .filters,
+body[data-theme="light"] .card {
+    background: rgba(255, 255, 255, 0.85);
+    color: #222;
+}
+
+body[data-theme="light"] #search-input,
+body[data-theme="light"] select {
+    background: white;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+body[data-theme="light"] .found-info {
+    background: rgba(76,175,80,0.15);
+    color: #2e7d32;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 25px 0;
+}
+
+#clear-filters {
+    display: block;
+    margin: 20px auto 0;
+    padding: 12px 25px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+}
+
+#clear-filters:hover {
+    background: #d32f2f;
+}
+
+/* Единый стиль для кнопок */
+.btn-primary, .btn-secondary {
+    padding: 14px 28px;
+    font-size: 1.05rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #43A047;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #757575;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #616161;
+    transform: translateY(-2px);
+}
+
+/* Селект сортировки в едином стиле */
+#sort-select {
+    padding: 14px 18px;
+    font-size: 1.05rem;
+    border-radius: 50px;
+    border: none;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    cursor: pointer;
+    min-width: 220px;
+}
+
+#sort-select option {
+    background: #2c2c54;
+    color: white;
+}
+
+/* Сообщение о количестве */
+.found-info {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin: 20px 0;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(76,175,80,0.25);
+    color: #c8e6c9;
+}
+
+/* Светлая тема для новых элементов */
+body[data-theme="light"] .found-info {
+    background: rgba(76,175,80,0.15);
+    color: #2e7d32;
+}
+
+body[data-theme="light"] #sort-select {
+    background: white;
+    color: #333;
+    border: 1px solid #ccc;
+}
