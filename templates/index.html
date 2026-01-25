@@ -6,12 +6,23 @@
     <title>Anime Searcher</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 </head>
-<body data-theme="dark">
+<body data-theme="dark" data-nsfw="{{ 'true' if current_user.is_authenticated and current_user.nsfw_allowed else '' }}">
     <div class="container">
         <div class="header">
             <h1>Anime Searcher</h1>
-            <button id="theme-toggle" title="Сменить тему">🌙</button>
+            <div class="header-buttons">
+                {% if current_user.is_authenticated %}
+                    <span>Привет, {{ current_user.username }}!</span>
+                    <a href="{{ url_for('settings') }}" class="btn btn-settings">Настройки</a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-logout">Выйти</a>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-login">Вход</a>
+                    <a href="{{ url_for('register') }}" class="btn btn-register">Регистрация</a>
+                {% endif %}
+                <button id="theme-toggle" title="Сменить тему">🌙</button>
+            </div>
         </div>
         
         <div class="search-box">

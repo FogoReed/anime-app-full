@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки аккаунта</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <div class="header">
+            <h1>Настройки аккаунта</h1>
+        </div>
+        <form method="POST" style="max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px;">
+            <div class="form-group">
+                <label>Тег:</label>
+                <input type="text" name="tag" value="{{ user.tag }}" placeholder="Твой тег" class="input-style">
+            </div>
+
+            <div class="form-group">
+                <label>Приватный профиль:</label>
+                <input type="checkbox" name="profile_private" {% if user.profile_private %}checked{% endif %} class="input-style">
+            </div>
+
+            <div class="form-group">
+                <label>Показывать 18+ контент:</label>
+                <input type="checkbox" name="nsfw_allowed" {% if user.nsfw_allowed %}checked{% endif %} class="input-style">
+            </div>
+
+            <div class="form-actions" style="display: flex; justify-content: center; gap: 20px;">
+                <button type="submit" class="btn-setting-apply">Сохранить настройки</button>
+                <a href="{{ url_for('index') }}" class="btn-setting-deny">Назад</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

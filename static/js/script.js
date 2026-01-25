@@ -230,7 +230,8 @@ document.getElementById('random-btn').addEventListener('click', async () => {
     showLoading();
 
     try {
-        const resp = await fetch('/api/random_anime_filtered?limit=20&sfw=' + (allowNSFW ? 'false' : 'true'));
+        const resp = await fetch(`/api/random_anime_filtered?limit=20&sfw=${allowNSFW ? 'false' : 'true'}`);
+
         const data = await resp.json();
 
         if (!data.data || data.data.length === 0) {
@@ -255,16 +256,24 @@ document.getElementById('random-btn').addEventListener('click', async () => {
 document.addEventListener('DOMContentLoaded', () => {
     const nsfwModal = document.getElementById('nsfw-modal');
     const rememberCheckbox = document.getElementById('remember-choice');
-    const hasChosen = localStorage.getItem('nsfw_choice') !== null;
+    const hasChosenLocal = localStorage.getItem('nsfw_choice') !== null;
 
-    // Если выбор уже сохранён — используем его
-    if (hasChosen) {
-        allowNSFW = localStorage.getItem('nsfw_choice') === 'true';
-        console.log("Загружено из памяти:", allowNSFW ? "18+ разрешён" : "18+ запрещён");
+    // Если пользователь залогинен, используем БД (NSFW уже задано)
+    const isLoggedIn = document.body.getAttribute('data-nsfw') !== null;
+
+    if (isLoggedIn) {
+        console.log("NSFW из БД:", allowNSFW ? "разрешён" : "запрещён");
         return;
     }
 
-    // Если выбора нет — показываем модалку
+    // Если выбор уже есть в localStorage — используем его
+    if (hasChosenLocal) {
+        allowNSFW = localStorage.getItem('nsfw_choice') === 'true';
+        console.log("NSFW из localStorage:", allowNSFW ? "разрешён" : "запрещён");
+        return;
+    }
+
+    // Показываем модалку для гостя
     nsfwModal.classList.add('show');
 
     document.getElementById('nsfw-yes').addEventListener('click', () => {
@@ -282,6 +291,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         nsfwModal.classList.remove('show');
     });
+});
+
+// Обновление 18+ через AJAX после сохранения на странице настроек
+document.getElementById('nsfw-checkbox').addEventListener('change', async (e) => {
+    const checked = e.target.checked;
+    const resp = await fetch('/api/set_nsfw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nsfw: checked })
+    });
+    const data = await resp.json();
+    if (data.success) alert("Настройки 18+ обновлены!");
 });
 
 // Пагинация

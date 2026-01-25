@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body data-theme="dark">
+    <div class="container">
+        <div class="header">
+            <h1>Регистрация</h1>
+        </div>
+        <form method="POST" style="max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px;">
+            <input type="text" name="username" placeholder="Имя" required class="input-style">
+            <input type="password" name="password" placeholder="Пароль" required class="input-style">
+            <button type="submit" class="btn-primary">Зарегистрироваться</button>
+        </form>
+        <p style="text-align:center; margin-top: 15px;">
+            <a href="{{ url_for('login') }}" style="color: #fff; text-decoration: underline;">Уже есть аккаунт? Войти</a>
+        </p>
+    </div>
+</body>
+</html>
