@@ -15,7 +15,7 @@
             <div class="header-buttons">
                 {% if current_user.is_authenticated %}
                     <span>Привет, {{ current_user.username }}!</span>
-                    <a href="{{ url_for('settings') }}" class="btn btn-settings">Настройки</a>
+                    <button id="btn-settings" title="Настройки">⚙️</button>
                     <a href="{{ url_for('logout') }}" class="btn btn-logout">Выйти</a>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="btn btn-login">Вход</a>

@@ -294,15 +294,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Обновление 18+ через AJAX после сохранения на странице настроек
-document.getElementById('nsfw-checkbox').addEventListener('change', async (e) => {
-    const checked = e.target.checked;
-    const resp = await fetch('/api/set_nsfw', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nsfw: checked })
+const nsfwCheckbox = document.getElementById('nsfw-checkbox');
+if (nsfwCheckbox) {
+    nsfwCheckbox.addEventListener('change', async (e) => {
+        const checked = e.target.checked;
+        const resp = await fetch('/api/set_nsfw', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nsfw: checked })
+        });
+        const data = await resp.json();
+        if (data.success) {
+            alert("Настройки 18+ обновлены!");
+        }
     });
-    const data = await resp.json();
-    if (data.success) alert("Настройки 18+ обновлены!");
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const settingsBtn = document.getElementById('btn-settings');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => {
+            window.location.href = '/settings';
+        });
+    }
 });
 
 // Пагинация

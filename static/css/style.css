@@ -26,6 +26,13 @@ h1 {
     margin-left: auto;
     margin-right: auto;
 }
+.grid,
+.filters,
+.search-box {
+    position: relative;
+    z-index: 1;
+}
+
 #search-input {
     flex: 1;
     padding: 18px 20px;
@@ -191,7 +198,7 @@ h1 {
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,0.7);
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     z-index: 1000;
@@ -203,6 +210,7 @@ h1 {
 .modal.show {
     opacity: 1;
     visibility: visible;
+    display: flex;
 }
 
 .modal-content {
@@ -264,12 +272,38 @@ h1 {
     margin-bottom: 20px;
 }
 
+.header-buttons {
+    display: flex;
+    align-items: center; /* вертикальное выравнивание */
+    gap: 10px;
+}
+
+.header-buttons button,
+.header-buttons a {
+    line-height: 1;       /* одинаковая высота текста */
+    display: flex;        /* чтобы центрировать контент внутри кнопки */
+    align-items: center;  /* вертикально по центру */
+    justify-content: center; /* горизонтально */
+    padding: 10px 15px;   /* одинаковый паддинг */
+    font-size: 1.1rem;
+}
+
 #theme-toggle {
     font-size: 1.8rem;
     background: none;
     border: none;
     cursor: pointer;
     padding: 10px;
+}
+
+#btn-settings {
+    font-size: 1.8rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    z-index: 20;
+    position: relative;
 }
 
 body[data-theme="light"] {
@@ -486,8 +520,8 @@ body[data-theme="light"] #sort-select {
 }
 
 .btn-settings {
-    padding: 10px 20px;
-    font-size: 1.1rem;
+    padding: 10px 10px;
+    /* font-size: 1.1rem; */
     background: #4f46e5;
     color: white;
     border: none;
