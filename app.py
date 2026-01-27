@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from config import Config
-from models import db, User
+from models import db, User, UserAnime
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -242,6 +242,35 @@ def settings():
         return redirect(url_for('settings'))
 
     return render_template('settings.html', user=current_user)
+
+@app.route('/api/add_to_list', methods=['POST'])
+@login_required
+def add_to_list():
+    data = request.get_json()
+    mal_id = data.get('mal_id')
+
+    if not mal_id:
+        return jsonify({'error': 'mal_id is required'}), 400
+
+    # Проверка — уже есть в списке?
+    exists = UserAnime.query.filter_by(
+        user_id=current_user.id,
+        mal_id=mal_id
+    ).first()
+
+    if exists:
+        return jsonify({'message': 'already_added'}), 200
+
+    anime = UserAnime(
+        user_id=current_user.id,
+        mal_id=mal_id,
+        status='planned'
+    )
+
+    db.session.add(anime)
+    db.session.commit()
+
+    return jsonify({'success': True})
 
 if __name__ == '__main__':
     app.run(debug=True)

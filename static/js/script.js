@@ -208,10 +208,20 @@ function renderAnime(anime) {
             <img src="${anime.image}" alt="${anime.title}">
             <div class="card-info">
                 <div class="card-title">${anime.title}</div>
+
                 <div class="card-meta">
                     ${anime.type} • ${year} • ${anime.episodes} эп. • ⭐ ${anime.score}
                 </div>
+
                 <div class="card-synopsis">${anime.synopsis}</div>
+
+                ${
+                    document.body.dataset.userLoggedIn === 'true'
+                    ? `<button class="btn-add" data-mal-id="${anime.mal_id}">
+                        ➕ В список
+                      </button>`
+                    : ''
+                }
             </div>
         </div>
     `;
@@ -316,6 +326,33 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsBtn.addEventListener('click', () => {
             window.location.href = '/settings';
         });
+    }
+});
+
+document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-add');
+    if (!btn) return;
+
+    const malId = btn.dataset.malId;
+
+    try {
+        const resp = await fetch('/api/add_to_list', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mal_id: malId })
+        });
+
+        const data = await resp.json();
+
+        if (data.success || data.message === 'already_added') {
+            btn.textContent = '✔ В списке';
+            btn.disabled = true;
+            btn.classList.add('added');
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert('Ошибка при добавлении в список');
     }
 });
 
