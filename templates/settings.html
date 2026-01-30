@@ -3,37 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройки аккаунта</title>
+    <title>Настройки</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 </head>
-<body data-theme="dark">
+<body>
     <div class="container">
         <div class="header">
-            <h1>Настройки аккаунта</h1>
+            <h1>Настройки</h1>
+            <div class="header-buttons">
+                <a href="{{ url_for('index') }}" class="btn-back">Назад</a>
+            </div>
         </div>
-        <form method="POST" style="max-width: 400px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px;">
+        
+        <form method="POST" style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
             <div class="form-group">
-                <label>Тег:</label>
-                <input type="text" name="tag" value="{{ user.tag }}" placeholder="Твой тег" class="input-style">
+                <label for="tag">Тег:</label>
+                <input type="text" id="tag" name="tag" value="{{ user.tag or '' }}" 
+                       placeholder="Ваш тег" class="input-style">
             </div>
-
+            
             <div class="form-group">
-                <label>Приватный профиль:</label>
-                <input type="checkbox" name="profile_private" {% if user.profile_private %}checked{% endif %} class="input-style">
+                <label>
+                    <input type="checkbox" name="nsfw_allowed" value="true" 
+                           {% if user.nsfw_allowed %}checked{% endif %} class="input-style">
+                    Разрешить 18+ контент
+                </label>
             </div>
-
+            
             <div class="form-group">
-                <label>Показывать 18+ контент:</label>
-                <input type="checkbox" name="nsfw_allowed" {% if user.nsfw_allowed %}checked{% endif %} class="input-style">
+                <label>
+                    <input type="checkbox" name="private_account" value="true" 
+                           {% if user.private_account %}checked{% endif %} class="input-style">
+                    Приватный аккаунт
+                </label>
             </div>
-
-            <div class="form-actions" style="display: flex; justify-content: center; gap: 20px;">
-                <button type="submit" class="btn-setting-apply">Сохранить настройки</button>
-                <a href="{{ url_for('index') }}" class="btn-setting-deny">Назад</a>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Сохранить</button>
+                <a href="{{ url_for('index') }}" class="btn-secondary">Отмена</a>
             </div>
         </form>
     </div>
+    
+    <!-- Подключение скрипта темы -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script>
+        // Минимальный скрипт для предотвращения мигания
+        (function() {
+            // Проверяем сохраненную тему
+            const savedTheme = localStorage.getItem('theme');
+            let theme;
+            
+            if (savedTheme) {
+                theme = savedTheme;
+            } else {
+                // Используем системную тему
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                theme = prefersDark ? 'dark' : 'light';
+                localStorage.setItem('theme', theme);
+            }
+            
+            // Устанавливаем тему СРАЗУ
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </body>
 </html>

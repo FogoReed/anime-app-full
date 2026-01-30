@@ -8,68 +8,95 @@
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 </head>
-<body data-theme="dark">
-<div class="container">
-    <div class="header">
-        <h1>📚 Мой список</h1>
-        <a href="{{ url_for('index') }}" class="btn">← Назад</a>
-    </div>
-
-    {% if anime_list %}
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Мой список</h1>
+            <div class="header-buttons">
+                <a href="{{ url_for('index') }}" class="btn-back">Назад</a>
+            </div>
+        </div>
+        
+        {% if anime_list %}
         <div class="list-grid">
-            {% for item in anime_list %}
-                <div class="list-card-wide" data-anime-id="{{ item.id }}">
-
-                    <!-- Левая часть -->
-                    <div class="list-card-left">
-                        <img src="{{ item.image }}" alt="{{ item.title }}">
+            {% for anime in anime_list %}
+            <div class="list-card-wide" data-anime-id="{{ anime.id }}">
+                <div class="list-card-left">
+                    <img src="{{ anime.image }}" alt="{{ anime.title }}">
+                </div>
+                <div class="list-card-right">
+                    <h3>{{ anime.title }}</h3>
+                    <div class="anime-meta">
+                        <span>{{ anime.type }}</span> • 
+                        <span>{{ anime.year }}</span> • 
+                        <span>{{ anime.episodes }} эп.</span>
                     </div>
-
-                    <!-- Правая часть -->
-                    <div class="list-card-right">
-                        <h2>{{ item.title }}</h2>
-
-                        <div class="meta">
-                            {{ item.type }} • {{ item.year }} • {{ item.episodes }} эп.
-                        </div>
-
-                        <p class="synopsis">{{ item.synopsis }}</p>
-
-                        <div class="controls">
+                    <p class="synopsis">{{ anime.synopsis }}</p>
+                    
+                    <div class="controls">
+                        <label>Статус:
                             <select class="status-select">
-                                <option value="planned" {{ 'selected' if item.status=='planned' }}>Запланировано</option>
-                                <option value="watching" {{ 'selected' if item.status=='watching' }}>Смотрю</option>
-                                <option value="completed" {{ 'selected' if item.status=='completed' }}>Просмотрено</option>
-                                <option value="dropped" {{ 'selected' if item.status=='dropped' }}>Брошено</option>
+                                <option value="planned" {% if anime.status == 'planned' %}selected{% endif %}>Запланировано</option>
+                                <option value="watching" {% if anime.status == 'watching' %}selected{% endif %}>Смотрю</option>
+                                <option value="completed" {% if anime.status == 'completed' %}selected{% endif %}>Просмотрено</option>
+                                <option value="dropped" {% if anime.status == 'dropped' %}selected{% endif %}>Брошено</option>
                             </select>
-
+                        </label>
+                        
+                        <label>Оценка:
                             <select class="score-select">
-                                <option value="">Оценка</option>
-                                {% for i in range(1,11) %}
-                                    <option value="{{ i }}" {{ 'selected' if item.score==i }}>{{ i }}</option>
+                                <option value="">Без оценки</option>
+                                {% for i in range(1, 11) %}
+                                <option value="{{ i }}" {% if anime.score == i %}selected{% endif %}>{{ i }}</option>
                                 {% endfor %}
                             </select>
-
-                            <button class="btn-delete">🗑 Удалить</button>
-                            <label>
-                                <input type="checkbox" class="private-checkbox" {% if item.is_private %}checked{% endif %}>
-                                <span>Приватно</span>
-                            </label>
-                        </div>
-                        <div class="comment-box">
-                            <textarea
-                                class="comment-input"
-                                placeholder="Личный комментарий..."
-                            >{{ item.comment or '' }}</textarea>
-                        </div>
+                        </label>
+                        
+                        <label>
+                            <input type="checkbox" class="private-checkbox" {% if anime.is_private %}checked{% endif %}>
+                            <span>Приватно</span>
+                        </label>
                     </div>
+                    
+                    <div class="comment-section">
+                        <textarea class="comment-input" placeholder="Ваш комментарий...">{{ anime.comment or '' }}</textarea>
+                    </div>
+                    
+                    <button class="btn-delete">Удалить из списка</button>
                 </div>
+            </div>
             {% endfor %}
         </div>
-    {% else %}
-        <p>Список пуст 😢</p>
-    {% endif %}
-</div>
-<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        {% else %}
+        <p style="text-align: center; color: var(--text-secondary); font-size: 1.2rem;">
+            Ваш список пуст. Добавьте аниме на главной странице!
+        </p>
+        {% endif %}
+    </div>
+    
+    <!-- Подключение скрипта темы -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <!-- Подключение основного скрипта для работы со списком -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Минимальный скрипт для предотвращения мигания
+        (function() {
+            // Проверяем сохраненную тему
+            const savedTheme = localStorage.getItem('theme');
+            let theme;
+            
+            if (savedTheme) {
+                theme = savedTheme;
+            } else {
+                // Используем системную тему
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                theme = prefersDark ? 'dark' : 'light';
+                localStorage.setItem('theme', theme);
+            }
+            
+            // Устанавливаем тему СРАЗУ
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </body>
 </html>

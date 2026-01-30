@@ -9,7 +9,6 @@
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 </head>
 <body
-    data-theme="dark"
     data-nsfw="{{ 'true' if current_user.is_authenticated and current_user.nsfw_allowed else '' }}"
     data-user-logged-in="{{ 'true' if current_user.is_authenticated else 'false' }}"
 >
@@ -19,14 +18,14 @@
             <div class="header-buttons">
                 {% if current_user.is_authenticated %}
                     <span>Привет, {{ current_user.username }}!</span>
-                    <button id="btn-my-list" title="Мой список">📚</button>
-                    <button id="btn-settings" title="Настройки">⚙️</button>
+                    <button id="btn-my-list" class="icon-btn" title="Мой список">📚</button>
+                    <button id="btn-settings" class="icon-btn" title="Настройки">⚙️</button>
                     <a href="{{ url_for('logout') }}" class="btn btn-logout">Выйти</a>
                 {% else %}
                     <a href="{{ url_for('login') }}" class="btn btn-login">Вход</a>
                     <a href="{{ url_for('register') }}" class="btn btn-register">Регистрация</a>
                 {% endif %}
-                <button id="theme-toggle" title="Сменить тему">🌙</button>
+                <button id="theme-toggle" class="icon-btn" title="Сменить тему">🌙</button>
             </div>
         </div>
         
@@ -176,7 +175,13 @@
         
         <button id="toggle-filters">Показать фильтры ▼</button>
         
-        <div id="loading" class="loading hidden">Ищем...</div>
+        <div id="loading" class="loading hidden">
+            <div class="loading-double"></div>
+            <span>Ищем аниме...</span>
+            <p style="font-size: 1rem; color: var(--text-secondary); margin-top: 10px;">
+                Это может занять несколько секунд
+            </p>
+        </div>
         <div id="error" class="error hidden"></div>
         
         <div id="results" class="grid"></div>
@@ -206,5 +211,27 @@
             </label>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Минимальный скрипт для предотвращения мигания
+        (function() {
+            // Проверяем сохраненную тему
+            const savedTheme = localStorage.getItem('theme');
+            let theme;
+            
+            if (savedTheme) {
+                theme = savedTheme;
+            } else {
+                // Используем системную тему
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                theme = prefersDark ? 'dark' : 'light';
+                localStorage.setItem('theme', theme);
+            }
+            
+            // Устанавливаем тему СРАЗУ
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
 </body>
 </html>

@@ -80,11 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function searchAnime(query, page = 1) {
-        const prevBtn = document.getElementById('prev-page');
-        const nextBtn = document.getElementById('next-page');
-        const pageInfo = document.getElementById('page-info');
-        const pagination = document.getElementById('pagination');
-
+        console.log('searchAnime вызвана с query:', query, 'page:', page);
+        
         if (!query.trim()) {
             if (resultsDiv) resultsDiv.innerHTML = '';
             if (pagination) pagination.classList.add('hidden');
@@ -94,40 +91,43 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoading();
         try {
             const sort = document.getElementById('sort-select')?.value || '';
+            console.log('Запрашиваю:', `/api/search_anime?q=${encodeURIComponent(query)}&page=${page}&limit=12&order_by=${sort}&sort=desc`);
+            
             const resp = await fetch(`/api/search_anime?q=${encodeURIComponent(query)}&page=${page}&limit=12&order_by=${sort}&sort=desc`);
             const data = await resp.json();
+            console.log('Получены данные:', data);
+            
             if (data.error) return showError(data.error);
 
-            currentAnimeList = data.data;
+            currentAnimeList = data.data || [];
             renderCurrentAnimeList();
 
             currentQuery = query;
             currentPage = page;
 
-            if (prevBtn) prevBtn.disabled = page === 1;
-            if (nextBtn) nextBtn.disabled = !data.pagination?.has_next_page;
-            if (pageInfo) pageInfo.textContent = `Страница ${page}`;
-            if (pagination) pagination.classList.toggle('hidden', data.data.length === 0);
+            // Обновляем состояние кнопок пагинации
+            if (prevBtn) {
+                prevBtn.disabled = page === 1;
+                console.log('prevBtn disabled:', prevBtn.disabled);
+            }
+            if (nextBtn) {
+                const hasNextPage = data.pagination?.has_next_page || false;
+                nextBtn.disabled = !hasNextPage;
+                console.log('nextBtn disabled:', nextBtn.disabled);
+            }
+            if (pageInfo) {
+                pageInfo.textContent = `Страница ${page}`;
+            }
+            if (pagination) {
+                pagination.classList.toggle('hidden', currentAnimeList.length === 0);
+            }
 
         } catch (err) {
+            console.error('Ошибка поиска:', err);
             showError('Нет соединения');
         } finally {
             hideLoading();
         }
-    }
-
-    // --- Тема сайта ---
-    function setTheme(theme) {
-        document.body.setAttribute('data-theme', theme);
-        localStorage.setItem('theme', theme);
-        if (themeToggle) themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
-    }
-    setTheme(localStorage.getItem('theme') || 'dark');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', () => {
-            const newTheme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            setTheme(newTheme);
-        });
     }
 
     // --- Фильтры ---
@@ -213,7 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => searchAnime(e.target.value.trim(), 1), 400);
+            debounceTimer = setTimeout(() => {
+                const query = e.target.value.trim();
+                console.log('Запуск поиска для:', query);
+                searchAnime(query, 1);
+            }, 400);
         });
     }
 
@@ -247,6 +251,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 showError('Ошибка соединения');
             } finally {
                 hideLoading();
+            }
+        });
+    }
+
+    // --- Навигация по страницам ---
+    console.log('Добавляю обработчики для кнопок пагинации');
+    console.log('prevBtn:', prevBtn);
+    console.log('nextBtn:', nextBtn);
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            console.log('Нажата кнопка "Назад", currentPage:', currentPage, 'currentQuery:', currentQuery);
+            if (currentPage > 1 && currentQuery) {
+                searchAnime(currentQuery, currentPage - 1);
+            }
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            console.log('Нажата кнопка "Вперёд", currentPage:', currentPage, 'currentQuery:', currentQuery);
+            if (currentQuery) {
+                searchAnime(currentQuery, currentPage + 1);
             }
         });
     }
@@ -404,12 +431,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 }); // --- Конец DOMContentLoaded ---
-
-document.addEventListener('DOMContentLoaded', () => {
-    const prevBtn = document.getElementById('prev-page');
-    const nextBtn = document.getElementById('next-page');
-
-    // Навигация по страницам
-    if (prevBtn) prevBtn.addEventListener('click', () => searchAnime(currentQuery, currentPage - 1));
-    if (nextBtn) nextBtn.addEventListener('click', () => searchAnime(currentQuery, currentPage + 1));
-});
