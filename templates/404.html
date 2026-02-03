@@ -13,6 +13,10 @@
     data-user-logged-in="{{ 'true' if current_user.is_authenticated else 'false' }}"
 >
     <div class="container">
+        {% include 'includes/header.html' %}
+    </div>
+    
+    <!-- <div class="container">
         <div class="header">
             <h1>Anime Searcher</h1>
             <div class="header-buttons">
@@ -27,7 +31,7 @@
                 {% endif %}
                 <button id="theme-toggle" class="icon-btn" title="Сменить тему">🌙</button>
             </div>
-        </div>
+        </div> -->
         
         <!-- 404 Content -->
         <div class="error-container" style="text-align: center; padding: 60px 20px;">

@@ -13,21 +13,8 @@
     data-user-logged-in="{{ 'true' if current_user.is_authenticated else 'false' }}"
 >
     <div class="container">
-        <div class="header">
-            <h1>Anime Searcher</h1>
-            <div class="header-buttons">
-                {% if current_user.is_authenticated %}
-                    <span>Привет, {{ current_user.username }}!</span>
-                    <button id="btn-my-list" class="icon-btn" title="Мой список">📚</button>
-                    <button id="btn-settings" class="icon-btn" title="Настройки">⚙️</button>
-                    <a href="{{ url_for('logout') }}" class="btn btn-logout">Выйти</a>
-                {% else %}
-                    <a href="{{ url_for('login') }}" class="btn btn-login">Вход</a>
-                    <a href="{{ url_for('register') }}" class="btn btn-register">Регистрация</a>
-                {% endif %}
-                <button id="theme-toggle" class="icon-btn" title="Сменить тему">🌙</button>
-            </div>
-        </div>
+        {% include 'includes/header.html' %}
+    </div>
         
         <!-- 400 Content -->
         <div class="error-container" style="text-align: center; padding: 60px 20px;">

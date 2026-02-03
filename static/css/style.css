@@ -44,6 +44,7 @@
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
     --bg-card: rgba(30, 41, 59, 0.8);
+    --bg-tertiary: rgba(51, 65, 85, 0.6);
     --text-primary: #f1f5f9;
     --text-secondary: #94a3b8;
     --border-color: rgba(255, 255, 255, 0.1);
@@ -55,6 +56,7 @@
     --bg-primary: #f8fafc;
     --bg-secondary: #f1f5f9;
     --bg-card: rgba(255, 255, 255, 0.9);
+    --bg-tertiary: rgba(226, 232, 240, 0.6);
     --text-primary: #1e293b;
     --text-secondary: #64748b;
     --border-color: rgba(0, 0, 0, 0.1);
@@ -147,7 +149,247 @@ h1 {
 }
 
 /* =========================================
-   2. ENHANCED BUTTON SYSTEM
+   2. ENHANCED HEADER & NAVIGATION - НОВАЯ СТРУКТУРА
+   ========================================= */
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 40px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Верхняя строка */
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-height: 60px;
+}
+
+.header-left h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: textShine 3s ease-in-out infinite alternate;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.user-greeting {
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 8px 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+/* Нижняя строка */
+.header-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 15px 0;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Основная навигация слева */
+.header-nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Настройки справа */
+.header-settings {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Ссылки навигации */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    text-decoration: none;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.6s;
+}
+
+.nav-link:hover::before {
+    left: 100%;
+}
+
+.nav-link:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary);
+}
+
+.nav-link.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary-dark);
+    box-shadow: var(--shadow-md);
+}
+
+.nav-link.active::before {
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.nav-icon {
+    font-size: 1.2rem;
+}
+
+/* Специальный стиль для кнопки настроек */
+.settings-link {
+    background: var(--bg-secondary);
+}
+
+.settings-link:hover {
+    background: var(--warning);
+}
+
+.settings-link.active {
+    background: var(--warning);
+}
+
+/* Адаптивность для header */
+@media (max-width: 1024px) {
+    .header {
+        gap: 15px;
+    }
+    
+    .header-left h1 {
+        font-size: 2rem;
+    }
+    
+    .nav-link {
+        padding: 10px 20px;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .header-left h1 {
+        font-size: 1.8rem;
+        text-align: center;
+    }
+    
+    .header-user {
+        justify-content: center;
+    }
+    
+    .header-bottom {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        text-align: center;
+        border-top: 1px solid var(--border-color);
+        padding-top: 20px;
+    }
+    
+    .header-nav {
+        justify-content: center;
+        order: 1;
+    }
+    
+    .header-settings {
+        justify-content: center;
+        order: 2;
+    }
+    
+    .nav-link {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+    }
+    
+    .user-greeting {
+        order: -1;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-left h1 {
+        font-size: 1.5rem;
+    }
+    
+    .header-user {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .header-nav {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .nav-link {
+        justify-content: center;
+    }
+    
+    .user-greeting {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* =========================================
+   3. ENHANCED BUTTON SYSTEM
    ========================================= */
 /* Базовый стиль для всех кнопок */
 .btn,
@@ -299,7 +541,7 @@ h1 {
     background: var(--gradient-primary);
 }
 
-/* Кнопки с иконками в хедере */
+/* Кнопки с иконками */
 .icon-btn,
 #btn-my-list,
 #btn-settings,
@@ -356,7 +598,7 @@ h1 {
 }
 
 /* =========================================
-   3. ENHANCED FORM ELEMENTS
+   4. FORM ELEMENTS & CONTROLS
    ========================================= */
 /* Поля ввода */
 .form-input, 
@@ -423,7 +665,7 @@ select:focus,
     transform: translateY(-2px);
 }
 
-/* Чекбоксы - улучшенная версия */
+/* Чекбоксы */
 .checkbox-enhanced,
 .private-checkbox,
 input[type="checkbox"].input-style,
@@ -478,30 +720,6 @@ input[type="checkbox"].input-style:hover,
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-/* Специальные стили для чекбоксов в списке жанров */
-.genres-list label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    background: var(--bg-card);
-}
-
-/* Улучшенное выравнивание для чекбоксов в жанрах */
-.genres-list label input[type="checkbox"] {
-    margin: 0;
-    position: relative;
-    top: 0;
-}
-
-/* При наведении на label - подсвечиваем и чекбокс */
-.genres-list label:hover input[type="checkbox"] {
-    border-color: var(--primary);
-}
-
 /* Радио-кнопки */
 .radio-enhanced {
     appearance: none;
@@ -521,58 +739,75 @@ input[type="checkbox"].input-style:hover,
 }
 
 /* =========================================
-   4. HEADER & NAVIGATION
+   5. HERO SECTIONS
    ========================================= */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.hero-section,
+.search-hero,
+.random-hero {
+    text-align: center;
+    padding: 40px 20px;
     margin-bottom: 40px;
-    padding: 20px 0;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.header-buttons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.nav-buttons {
-    display: flex;
-    gap: 10px;
-}
-
-.nav-buttons a {
-    padding: 10px 20px;
-    text-decoration: none;
-    border-radius: var(--radius-full);
-    transition: all var(--transition-medium);
+    border-radius: var(--radius-xl);
     background: var(--bg-card);
-    color: var(--text-primary);
     border: 1px solid var(--border-color);
-    font-weight: 500;
+    animation: fadeIn 0.8s ease-out;
 }
 
-.nav-buttons a:hover {
-    background: var(--primary);
-    color: white;
-    transform: translateY(-2px);
-    border-color: var(--primary);
+.hero-icon,
+.search-icon,
+.random-icon {
+    font-size: 6rem;
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
 }
 
 /* =========================================
-   5. SEARCH SECTION
+   6. SECTION STYLES
+   ========================================= */
+.section {
+    margin-bottom: 60px;
+    padding: 30px;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-color);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* =========================================
+   7. SEARCH BOX STYLES
    ========================================= */
 .search-box {
     display: flex;
-    gap: 20px;
-    margin-bottom: 40px;
-    max-width: 900px;
+    gap: 15px;
+    margin-bottom: 30px;
+    max-width: 800px;
     margin-left: auto;
     margin-right: auto;
     position: relative;
-    z-index: 5;
 }
 
 .search-box::before {
@@ -605,8 +840,35 @@ input[type="checkbox"].input-style:hover,
     50% { opacity: 0.8; }
 }
 
+/* Быстрые теги поиска */
+.quick-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.quick-tag {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.quick-tag:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
 /* =========================================
-   6. FILTERS SECTION
+   8. FILTERS SECTION
    ========================================= */
 #toggle-filters {
     display: block;
@@ -649,6 +911,17 @@ input[type="checkbox"].input-style:hover,
     border: none;
 }
 
+.filter-group {
+    margin-bottom: 25px;
+}
+
+.filter-group label {
+    display: block;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
 .genres-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -681,24 +954,6 @@ input[type="checkbox"].input-style:hover,
     transform: translateX(5px);
 }
 
-/* При наведении на label - меняем цвет галочки в чекбоксе */
-.genres-list label:hover input[type="checkbox"] {
-    border-color: white;
-}
-
-.genres-list label:hover input[type="checkbox"]:checked {
-    background: white;
-    border-color: white;
-}
-
-.genres-list label:hover input[type="checkbox"]:checked::after {
-    color: var(--success);
-}
-
-.filter-group {
-    margin-bottom: 25px;
-}
-
 .filter-actions {
     display: flex;
     gap: 20px;
@@ -708,7 +963,7 @@ input[type="checkbox"].input-style:hover,
 }
 
 /* =========================================
-   7. CARDS & GRID
+   9. CARDS & GRID SYSTEM
    ========================================= */
 .grid {
     display: grid;
@@ -778,6 +1033,11 @@ input[type="checkbox"].input-style:hover,
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 .card-meta {
@@ -797,8 +1057,70 @@ input[type="checkbox"].input-style:hover,
     line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    flex-grow: 1;
 }
 
+/* Карточка с баджами */
+.card-image {
+    position: relative;
+    /* aspect-ratio: 2/3; */
+    overflow: hidden;
+}
+
+.card-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.badge {
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+}
+
+.badge-type {
+    background: rgba(102, 126, 234, 0.9);
+}
+
+.badge-year {
+    background: rgba(245, 158, 11, 0.9);
+}
+
+.badge-popular {
+    background: rgba(239, 68, 68, 0.9);
+}
+
+/* Статистика карточки */
+.card-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.stat-icon {
+    font-size: 1.1rem;
+}
+
+.stat-value {
+    font-weight: 600;
+}
+
+/* Кнопка добавления */
 .btn-add {
     margin-top: auto;
     align-self: flex-start;
@@ -814,6 +1136,12 @@ input[type="checkbox"].input-style:hover,
     transition: all var(--transition-medium);
     color: white;
     box-shadow: var(--shadow-md);
+    width: 100%;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .btn-add::after {
@@ -840,26 +1168,10 @@ input[type="checkbox"].input-style:hover,
     box-shadow: var(--shadow-lg);
 }
 
-.btn-add:active {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
-}
-
-/* Стиль для добавленного состояния */
 .btn-add.added {
     background: var(--gradient-success);
     animation: celebrate 0.5s ease;
     cursor: default;
-}
-
-.btn-add.added:hover {
-    transform: none;
-    box-shadow: var(--shadow-md);
-}
-
-.btn-add.added:hover::after {
-    width: 0;
-    height: 0;
 }
 
 @keyframes celebrate {
@@ -877,36 +1189,48 @@ input[type="checkbox"].input-style:hover,
     }
 }
 
-/* Иконки в кнопках */
-.btn-add::before {
-    margin-right: 8px;
-    font-size: 1.2rem;
-    transition: transform var(--transition-medium);
+/* =========================================
+   10. FEATURES & CARDS
+   ========================================= */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
 }
 
-.btn-add.added::before {
-    animation: iconPop 0.3s ease;
+.feature-card {
+    background: var(--bg-card);
+    padding: 30px;
+    border-radius: var(--radius-xl);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    text-align: center;
 }
 
-@keyframes iconPop {
-    0% { transform: scale(0); }
-    70% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary);
 }
 
-/* Эффект пульсации для добавленного состояния */
-@keyframes pulseAdded {
-    0% { box-shadow: var(--shadow-md); }
-    50% { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0.3); }
-    100% { box-shadow: var(--shadow-md); }
+.feature-icon {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
 }
 
-.btn-add.added {
-    animation: celebrate 0.5s ease, pulseAdded 2s ease-in-out 0.5s 3;
+.feature-card h3 {
+    font-size: 1.8rem;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    color: var(--text-secondary);
+    line-height: 1.6;
 }
 
 /* =========================================
-   8. LIST VIEW IMPROVEMENTS
+   11. LIST VIEW IMPROVEMENTS
    ========================================= */
 .list-card-wide {
     display: flex;
@@ -992,7 +1316,7 @@ input[type="checkbox"].input-style:hover,
 }
 
 /* =========================================
-   9. MODALS & OVERLAYS
+   12. MODALS & OVERLAYS
    ========================================= */
 .modal {
     position: fixed;
@@ -1076,7 +1400,7 @@ input[type="checkbox"].input-style:hover,
 }
 
 /* =========================================
-   10. PAGINATION & STATES
+   13. PAGINATION & STATES
    ========================================= */
 .pagination {
     display: flex;
@@ -1084,6 +1408,10 @@ input[type="checkbox"].input-style:hover,
     align-items: center;
     gap: 20px;
     margin: 50px 0;
+    padding: 20px;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-color);
 }
 
 .pagination button {
@@ -1094,6 +1422,7 @@ input[type="checkbox"].input-style:hover,
     border: 1px solid var(--border-color);
     transition: all var(--transition-medium);
     font-weight: 600;
+    cursor: pointer;
 }
 
 .pagination button:hover:not(:disabled) {
@@ -1108,7 +1437,7 @@ input[type="checkbox"].input-style:hover,
     cursor: not-allowed;
 }
 
-/* Улучшенный стиль для загрузки */
+/* Загрузка */
 .loading {
     text-align: center;
     padding: 60px;
@@ -1129,33 +1458,7 @@ input[type="checkbox"].input-style:hover,
     box-shadow: var(--shadow-lg);
 }
 
-/* Индикатор загрузки - кружок */
-.loading-spinner {
-    width: 60px;
-    height: 60px;
-    border: 4px solid var(--border-color);
-    border-top-color: var(--primary);
-    border-radius: 50%;
-    animation: spin 1.2s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
-    position: relative;
-}
-
-/* Дополнительный эффект для спиннера */
-.loading-spinner::before {
-    content: '';
-    position: absolute;
-    top: -4px;
-    left: -4px;
-    right: -4px;
-    bottom: -4px;
-    border-radius: 50%;
-    border: 4px solid transparent;
-    border-top-color: var(--secondary);
-    animation: spin 1.5s linear infinite reverse;
-    opacity: 0.3;
-}
-
-/* Двойной спиннер */
+/* Индикатор загрузки */
 .loading-double {
     display: flex;
     align-items: center;
@@ -1241,7 +1544,7 @@ input[type="checkbox"].input-style:hover,
 }
 
 /* =========================================
-   11. SCROLLBAR STYLING
+   14. SCROLLBAR STYLING
    ========================================= */
 ::-webkit-scrollbar {
     width: 10px;
@@ -1264,11 +1567,54 @@ input[type="checkbox"].input-style:hover,
 }
 
 /* =========================================
-   12. RESPONSIVE DESIGN
+   15. RESPONSIVE DESIGN
    ========================================= */
+@media (max-width: 1024px) {
+    .container {
+        padding: 20px 15px;
+    }
+    
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    .features-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+
 @media (max-width: 768px) {
     h1 {
         font-size: 2.5rem;
+    }
+    
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .header-left {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .header-nav {
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .nav-link {
+        padding: 10px 15px;
+        font-size: 0.95rem;
+    }
+    
+    .header-buttons {
+        justify-content: center;
     }
     
     .search-box {
@@ -1277,7 +1623,7 @@ input[type="checkbox"].input-style:hover,
     
     .grid {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-        gap: 20px;
+        gap: 15px;
     }
     
     .list-card-wide {
@@ -1290,18 +1636,31 @@ input[type="checkbox"].input-style:hover,
         max-height: 300px;
     }
     
-    .header {
-        flex-direction: column;
-        gap: 20px;
-        text-align: center;
-    }
-    
-    .header-buttons {
-        justify-content: center;
-    }
-    
     .genres-list {
         grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .hero-icon,
+    .search-icon,
+    .random-icon {
+        font-size: 4rem;
+    }
+    
+    .section {
+        padding: 20px;
+    }
+    
+    .card {
+        max-width: 100%;
+    }
+    
+    .pagination {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .pagination button {
+        width: 100%;
     }
     
     .btn,
@@ -1333,141 +1692,59 @@ input[type="checkbox"].input-style:hover,
     }
 }
 
-/* =========================================
-   13. ADDITIONAL STYLES
-   ========================================= */
-/* Стили для заголовка на странице настроек и логина/регистрации */
-.container h1 {
-    margin-bottom: 30px;
-}
-
-/* Исправление для страницы настроек */
-.form-group {
-    margin-bottom: 20px;
-}
-
-/* Более точные стили для выравнивания */
-.form-group label {
-    display: inline-flex;
-    align-items: baseline; /* Выравнивание по базовой линии текста */
-    gap: 12px;
-    cursor: pointer;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.5;
-}
-
-/* Чекбокс в настройках - опускаем вниз */
-.form-group label input[type="checkbox"].input-style {
-    position: relative;
-    top: 10px; /* Опускаем чекбокс вниз относительно текста */
-    margin-left: 8px;
-}
-
-/* Текст "Приватно" в списке - поднимаем вверх */
-.list-card-right .controls label {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-}
-
-.list-card-right .controls label span {
-    position: relative;
-    top: 1px; /* Поднимаем текст */
-    font-size: 0.9rem;
-}
-
-/* Или используем vertical-align */
-.list-card-right .controls label {
-    vertical-align: middle;
-}
-
-.list-card-right .controls label span {
-    vertical-align: middle;
-    line-height: 22px; /* Такая же высота как у чекбокса */
-}
-
-/* Выравнивание для чекбоксов в списке жанров */
-.genres-list label {
-    align-items: center;
-}
-
-.genres-list label span {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.form-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    margin-top: 30px;
-    flex-wrap: wrap;
-}
-
-/* Стили для ссылок в формах */
-a[href*="login"],
-a[href*="register"] {
-    text-decoration: none;
-    transition: all var(--transition-fast);
-}
-
-a[href*="login"]:hover,
-a[href*="register"]:hover {
-    text-decoration: underline;
-}
-
-/* Исправление для сообщения о пустом списке */
-.list-grid p {
-    text-align: center;
-    padding: 40px;
-    font-size: 1.2rem;
-    color: var(--text-secondary);
-    background: var(--bg-card);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--border-color);
-}
-
-/* Дополнительные анимации */
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-.floating {
-    animation: float 3s ease-in-out infinite;
-}
-
-/* Эффект свечения для активных элементов */
-.glow {
-    box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
-}
-
-/* Адаптивность для чекбоксов */
-@media (max-width: 768px) {
-    .form-group label {
-        gap: 10px;
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2rem;
     }
     
-    .form-group label input[type="checkbox"].input-style {
-        top: 1px;
-        margin-left: 5px;
+    .grid {
+        grid-template-columns: 1fr;
     }
     
-    .list-card-right .controls label span {
-        top: 0;
+    .features-grid {
+        grid-template-columns: 1fr;
     }
     
-    .genres-list label {
-        gap: 8px;
-        padding: 6px 10px;
+    .hero-icon,
+    .search-icon,
+    .random-icon {
+        font-size: 3rem;
+    }
+    
+    .nav-link {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .modal-content {
+        padding: 20px;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    .filter-actions {
+        flex-direction: column;
+    }
+    
+    .genres-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-tags {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .quick-tag {
+        width: 100%;
+        text-align: center;
     }
 }
 
 /* =========================================
-   14. FLASH MESSAGES
+   16. FLASH MESSAGES
    ========================================= */
 .flash-container {
     max-width: 400px;
@@ -1562,22 +1839,148 @@ a[href*="register"]:hover {
 }
 
 /* =========================================
-   15. UTILITY STYLES
+   17. UTILITY CLASSES
    ========================================= */
-/* Адаптивные ссылки */
-.theme-link {
-    color: var(--text-primary);
-    text-decoration: underline;
-    transition: all var(--transition-medium);
-}
-
-.theme-link:hover {
-    color: var(--primary);
-    text-decoration: none;
-}
-
-/* Центрированный текст */
 .text-center {
     text-align: center;
-    margin-top: 15px;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.mb-30 {
+    margin-bottom: 30px;
+}
+
+.mt-20 {
+    margin-top: 20px;
+}
+
+.mt-30 {
+    margin-top: 30px;
+}
+
+.flex {
+    display: flex;
+}
+
+.flex-col {
+    flex-direction: column;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-10 {
+    gap: 10px;
+}
+
+.gap-20 {
+    gap: 20px;
+}
+
+.w-full {
+    width: 100%;
+}
+
+/* Скрыть элементы на мобильных */
+.mobile-hidden {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .mobile-hidden {
+        display: none !important;
+    }
+    
+    .mobile-show {
+        display: block !important;
+    }
+}
+
+/* Анимации для появления элементов */
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Эффект пульсации */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+/* Эффект свечения */
+.glow {
+    box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+}
+
+.glow-success {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+}
+
+.glow-danger {
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+}
+
+/* ===== СТИЛИ ДЛЯ РЕЖИМОВ ПОИСКА ===== */
+.mode-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+    justify-content: center;
+}
+
+.mode-tag {
+    padding: 12px 24px;
+    border: 2px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
+    gap: 8px;
+}
+
+.mode-tag:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.mode-tag.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: var(--shadow-md);
 }

@@ -2,11 +2,35 @@
 let currentPage = 1;
 let currentQuery = '';
 let debounceTimer;
-let allowNSFW = localStorage.getItem('nsfw_choice') === 'true';
+let allowNSFW;
 let currentAnimeList = [];
 
-// --- DOMContentLoaded: все обращения к элементам здесь ---
-document.addEventListener('DOMContentLoaded', () => {
+// Функция инициализации NSFW настроек
+function initNSFW() {
+    const isLoggedIn = document.body.dataset.userLoggedIn === 'true';
+    const hasNsfwLocal = localStorage.getItem('nsfw_choice') !== null;
+    
+    if (isLoggedIn) {
+        // Для авторизованных пользователей берем настройки с сервера
+        allowNSFW = document.body.getAttribute('data-nsfw') === 'true';
+    } else if (hasNsfwLocal) {
+        // Для неавторизованных с сохраненным выбором
+        allowNSFW = localStorage.getItem('nsfw_choice') === 'true';
+    } else {
+        // По умолчанию для новых пользователей
+        allowNSFW = false;
+    }
+    
+    console.log('Инициализировано allowNSFW:', allowNSFW);
+}
+
+// Добавьте эту функцию в начало script.js
+async function initializeScript() {
+    // Инициализируем NSFW настройки
+    initNSFW();
+    
+    // Загружаем список аниме пользователя
+    await window.userState.loadUserAnimeIds();
 
     // --- Элементы страницы ---
     const resultsDiv = document.getElementById('results');
@@ -44,14 +68,23 @@ document.addEventListener('DOMContentLoaded', () => {
             synopsis: anime.synopsis
         };
         const animeDataStr = encodeURIComponent(JSON.stringify(animeData));
+        
+        // Отображаем рейтинг только если он есть, иначе показываем "—"
+        const scoreDisplay = anime.score ? anime.score.toFixed(2) : '—';
+        
         return `
             <div class="card" data-anime="${animeDataStr}">
                 <img src="${anime.image}" alt="${anime.title}">
                 <div class="card-info">
                     <div class="card-title">${anime.title}</div>
-                    <div class="card-meta">${anime.type} • ${year} • ${anime.episodes} эп. • ⭐ ${anime.score || '—'}</div>
+                    <div class="card-meta">${anime.type} • ${year} • ${anime.episodes} эп. • ⭐ ${scoreDisplay}</div>
                     <div class="card-synopsis">${anime.synopsis}</div>
-                    ${document.body.dataset.userLoggedIn === 'true' ? `<button class="btn-add">➕ В список</button>` : ''}
+                    ${document.body.dataset.userLoggedIn === 'true' ? `
+                        <button class="btn-add ${window.userState.hasAnime(anime.mal_id) ? 'added' : ''}">
+                            <span class="btn-icon">${window.userState.hasAnime(anime.mal_id) ? '✔' : '➕'}</span>
+                            ${window.userState.hasAnime(anime.mal_id) ? 'В списке' : 'В список'}
+                        </button>
+                    ` : ''}
                 </div>
             </div>
         `;
@@ -175,7 +208,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 const maxYear = document.getElementById('filter-max-year')?.value || '';
                 const genres = Array.from(document.querySelectorAll('.genres-list input[type="checkbox"]:checked')).map(cb => cb.value).join(',');
 
-                const params = new URLSearchParams({ type, status, rating, min_year: minYear, max_year: maxYear, genres, limit: 20, sfw: allowNSFW ? 'false' : 'true' });
+                console.log('Параметры фильтров:', { type, status, rating, minYear, maxYear, genres });
+                console.log('Текущее allowNSFW:', allowNSFW);
+                console.log('SFW параметр для запроса:', allowNSFW ? 'false' : 'true');
+
+                const params = new URLSearchParams({ 
+                    type, 
+                    status, 
+                    rating, 
+                    min_year: minYear, 
+                    max_year: maxYear, 
+                    genres, 
+                    limit: 20, 
+                    sfw: allowNSFW ? 'false' : 'true' 
+                });
+                
+                console.log('Запрашиваю:', `/api/random_anime_filtered?${params}`);
                 const resp = await fetch(`/api/random_anime_filtered?${params}`);
                 const data = await resp.json();
 
@@ -225,11 +273,30 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sortSelect) {
         sortSelect.addEventListener('change', () => {
             if (!currentAnimeList.length) return;
+
             const sortBy = sortSelect.value;
+
+            // 🔥 MAL-подобная логика для рейтинга
+            if (sortBy === 'score') {
+                const MIN_VOTES = 1000;
+
+                currentAnimeList = currentAnimeList
+                    .filter(a => a.score !== null)
+                    .filter(a => (a.members || 0) >= MIN_VOTES)
+                    .sort((a, b) => b.score - a.score);
+
+                renderCurrentAnimeList();
+                return;
+            }
+
+            // ⬇ обычная сортировка для остальных полей
             currentAnimeList.sort((a, b) => {
-                if (sortBy === 'start_date') return new Date(b.start_date || 0) - new Date(a.start_date || 0);
-                return (Number(b[sortBy]) || 0) - (Number(a[sortBy]) || 0);
+                if (sortBy === 'start_date') {
+                    return new Date(b.start_date || 0) - new Date(a.start_date || 0);
+                }
+                return (b[sortBy] || 0) - (a[sortBy] || 0);
             });
+
             renderCurrentAnimeList();
         });
     }
@@ -238,6 +305,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const randomBtn = document.getElementById('random-btn');
     if (randomBtn) {
         randomBtn.addEventListener('click', async () => {
+            console.log('Текущее allowNSFW:', allowNSFW);
+            console.log('SFW параметр для запроса:', allowNSFW ? 'false' : 'true');
+            
             showLoading();
             try {
                 const resp = await fetch(`/api/random_anime_filtered?limit=20&sfw=${allowNSFW ? 'false' : 'true'}`);
@@ -278,28 +348,41 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- NSFW модалка ---
+    // --- NSFW модалка (только для неавторизованных пользователей) ---
     const nsfwModal = document.getElementById('nsfw-modal');
     if (nsfwModal) {
         const rememberCheckbox = document.getElementById('remember-choice');
         const hasChosenLocal = localStorage.getItem('nsfw_choice') !== null;
-        const isLoggedIn = document.body.getAttribute('data-nsfw') !== null;
+        const isLoggedIn = document.body.dataset.userLoggedIn === 'true';
+
+        console.log('Проверка NSFW модалки (script.js):', {
+            hasChosenLocal,
+            isLoggedIn,
+            localStorageValue: localStorage.getItem('nsfw_choice'),
+            dataNsfw: document.body.getAttribute('data-nsfw')
+        });
 
         if (!isLoggedIn && !hasChosenLocal) {
+            console.log('Показываем модалку NSFW для неавторизованного пользователя');
             nsfwModal.classList.add('show');
+            
             document.getElementById('nsfw-yes')?.addEventListener('click', () => {
                 allowNSFW = true;
-                if (rememberCheckbox?.checked) localStorage.setItem('nsfw_choice', 'true');
+                if (rememberCheckbox?.checked) {
+                    localStorage.setItem('nsfw_choice', 'true');
+                }
                 nsfwModal.classList.remove('show');
+                console.log('Пользователь разрешил NSFW, новое allowNSFW:', allowNSFW);
             });
+            
             document.getElementById('nsfw-no')?.addEventListener('click', () => {
                 allowNSFW = false;
-                if (rememberCheckbox?.checked) localStorage.setItem('nsfw_choice', 'false');
+                if (rememberCheckbox?.checked) {
+                    localStorage.setItem('nsfw_choice', 'false');
+                }
                 nsfwModal.classList.remove('show');
+                console.log('Пользователь запретил NSFW, новое allowNSFW:', allowNSFW);
             });
-        } else if (hasChosenLocal) {
-            allowNSFW = localStorage.getItem('nsfw_choice') === 'true';
-            console.log("NSFW из localStorage:", allowNSFW ? "разрешён" : "запрещён");
         }
     }
 
@@ -314,7 +397,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ nsfw: checked })
             });
             const data = await resp.json();
-            if (data.success) alert("Настройки 18+ обновлены!");
+            if (data.success) {
+                alert("Настройки 18+ обновлены!");
+                // Обновляем allowNSFW после изменения настроек
+                allowNSFW = checked;
+                console.log('Обновлено allowNSFW после изменения настроек:', allowNSFW);
+            }
         });
     }
 
@@ -420,14 +508,23 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await resp.json();
             if (data.status === 'added') {
-                btn.textContent = '✔ В списке';
+                // Обновляем локальное состояние
+                window.userState.addAnime(anime.mal_id);
+                btn.innerHTML = '<span class="btn-icon">✔</span> В списке';
                 btn.classList.add('added');
             } else if (data.status === 'removed') {
-                btn.textContent = '➕ В список';
+                // Обновляем локальное состояние
+                window.userState.removeAnime(anime.mal_id);
+                btn.innerHTML = '<span class="btn-icon">➕</span> В список';
                 btn.classList.remove('added');
             }
         } finally {
             btn.disabled = false;
         }
     });
-}); // --- Конец DOMContentLoaded ---
+}
+
+// Замените текущий обработчик:
+document.addEventListener('DOMContentLoaded', () => {
+    initializeScript();
+});

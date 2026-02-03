@@ -32,13 +32,8 @@
 </head>
 <body>
     <div class="container">
-        <!-- Шапка с кнопкой возврата -->
-        <div class="header">
-            <h1>Вход</h1>
-            <div class="header-buttons">
-                <a href="{{ url_for('index') }}" class="btn-back">На главную</a>
-            </div>
-        </div>
+        {% include 'includes/header.html' %}
+    </div>
         
         <!-- Flash messages -->
         <div class="flash-container">

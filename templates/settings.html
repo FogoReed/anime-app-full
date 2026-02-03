@@ -10,12 +10,8 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Настройки</h1>
-            <div class="header-buttons">
-                <a href="{{ url_for('index') }}" class="btn-back">Назад</a>
-            </div>
-        </div>
+        {% include 'includes/header.html' %}
+    </div>
         
         <form method="POST" style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
             <div class="form-group">

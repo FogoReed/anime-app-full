@@ -1,0 +1,54 @@
+<!-- templates/includes/header.html -->
+<div class="header">
+    <!-- Верхняя строка: Логотип слева, пользовательские кнопки справа -->
+    <div class="header-top">
+        <div class="header-left">
+            <h1>Anime Searcher</h1>
+        </div>
+        
+        <div class="header-user">
+            {% if current_user.is_authenticated %}
+                <span class="user-greeting">Привет, {{ current_user.username }}!</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-logout" title="Выйти">
+                    <span class="btn-icon">🚪</span> Выйти
+                </a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="btn btn-login">
+                    <span class="btn-icon">🔑</span> Вход
+                </a>
+                <a href="{{ url_for('register') }}" class="btn btn-register">
+                    <span class="btn-icon">📝</span> Регистрация
+                </a>
+            {% endif %}
+            <button id="theme-toggle" class="icon-btn" title="Сменить тему">🌙</button>
+        </div>
+    </div>
+    
+    <!-- Нижняя строка: Навигация слева, настройки справа -->
+    <div class="header-bottom">
+        <nav class="header-nav">
+            <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                <span class="nav-icon">🏠</span> Главная
+            </a>
+            <a href="{{ url_for('search_page') }}" class="nav-link {% if request.endpoint == 'search_page' %}active{% endif %}">
+                <span class="nav-icon">🔍</span> Поиск
+            </a>
+            <a href="{{ url_for('random_page') }}" class="nav-link {% if request.endpoint == 'random_page' %}active{% endif %}">
+                <span class="nav-icon">🎲</span> Случайные
+            </a>
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('my_list') }}" class="nav-link {% if request.endpoint == 'my_list' %}active{% endif %}">
+                    <span class="nav-icon">📚</span> Мой список
+                </a>
+            {% endif %}
+        </nav>
+        
+        <div class="header-settings">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('settings') }}" class="nav-link settings-link {% if request.endpoint == 'settings' %}active{% endif %}">
+                    <span class="nav-icon">⚙️</span> Настройки
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

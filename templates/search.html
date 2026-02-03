@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск аниме | Anime Searcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body
+    data-nsfw="{{ 'true' if current_user.is_authenticated and current_user.nsfw_allowed else '' }}"
+    data-user-logged-in="{{ 'true' if current_user.is_authenticated else 'false' }}"
+    data-page="search"
+>
+    <div class="container">
+        {% include 'includes/header.html' %}
+        
+        <!-- Search Section -->
+        <div class="section" style="padding: 40px 20px;">
+            <div class="search-hero" style="text-align: center; margin-bottom: 40px;">
+                <div class="search-icon" style="font-size: 6rem; margin-bottom: 20px; animation: float 3s ease-in-out infinite;">
+                    🔍
+                </div>
+                
+                <h1 style="font-size: 3.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 20px;">
+                    Поиск аниме
+                </h1>
+                
+                <p style="font-size: 1.3rem; color: var(--text-secondary); max-width: 800px; margin: 0 auto 40px; line-height: 1.6;">
+                    Ищите аниме по названию или выбирайте готовые подборки: популярные, топ рейтинга, новинки и классика.
+                </p>
+                
+                <!-- Hidden input for current mode -->
+                <input type="hidden" id="current-mode" value="search">
+                
+                <div class="search-box" style="max-width: 900px; margin: 0 auto;">
+                    <!-- Mode tags -->
+                    <div class="mode-tags" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 30px;">
+                        <button class="mode-tag active" data-mode="search" data-endpoint="/api/search_anime">
+                            <span style="margin-right: 5px;">🔍</span> Поиск
+                        </button>
+                        <button class="mode-tag" data-mode="popular" data-endpoint="/api/popular_anime">
+                            <span style="margin-right: 5px;">🔥</span> Популярные
+                        </button>
+                        <button class="mode-tag" data-mode="top" data-endpoint="/api/top_anime">
+                            <span style="margin-right: 5px;">⭐</span> Топ рейтинга
+                        </button>
+                        <button class="mode-tag" data-mode="new" data-endpoint="/api/airing_anime">
+                            <span style="margin-right: 5px;">🆕</span> Новинки
+                        </button>
+                        <button class="mode-tag" data-mode="classic" data-endpoint="/api/classic_anime">
+                            <span style="margin-right: 5px;">🏛️</span> Классика
+                        </button>
+                    </div>
+                </div>
+                <!-- Search controls (only for search mode) -->
+                <div id="search-controls" style="display: block;">
+                    <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="search-input" placeholder="Введи название аниме (рус/eng/jp)..." autocomplete="off" style="flex: 1; min-width: 250px; padding: 15px 20px; font-size: 1.1rem;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label for="sort-select" style="color: var(--text-secondary);">Сортировка:</label>
+                            <select id="sort-select" style="padding: 15px 20px; font-size: 1.1rem;">
+                                <option value="score">По рейтингу</option>
+                                <option value="popularity">По популярности</option>
+                                <option value="members">По просмотрам</option>
+                                <option value="favorites">По избранному</option>
+                                <option value="start_date">По дате выхода</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading indicator -->
+            <div id="loading" class="loading hidden">
+                <div class="loading-double"></div>
+                <span id="loading-text">Ищем аниме...</span>
+                <p style="font-size: 1rem; color: var(--text-secondary); margin-top: 10px;">
+                    Это может занять несколько секунд
+                </p>
+            </div>
+            
+            <!-- Error message -->
+            <div id="error" class="error hidden"></div>
+            
+            <!-- Results -->
+            <div id="results" class="grid" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; min-height: 300px;"></div>
+            
+            <!-- Pagination -->
+            <div id="pagination" class="pagination hidden" style="margin-top: 40px;">
+                <button id="prev-page" class="btn btn-secondary" style="padding: 10px 20px;">← Назад</button>
+                <span id="page-info" style="margin: 0 20px; color: var(--text-secondary);">Страница 1</span>
+                <button id="next-page" class="btn btn-secondary" style="padding: 10px 20px;">Вперёд →</button>
+            </div>
+            
+            <!-- Empty state (hidden by default) -->
+            <div id="empty-state" class="hidden" style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">😴</div>
+                <h3 style="color: var(--text-secondary); font-size: 1.8rem; margin-bottom: 15px;">Ничего не найдено</h3>
+                <p style="color: var(--text-secondary); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+                    Попробуйте изменить запрос или выбрать другой режим поиска.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/userState.js') }}"></script>
+    
+    <script>
+        // Установка темы сразу
+        document.addEventListener('DOMContentLoaded', function() {
+            (function() {
+                const savedTheme = localStorage.getItem('theme');
+                let theme;
+                
+                if (savedTheme) {
+                    theme = savedTheme;
+                } else {
+                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    theme = prefersDark ? 'dark' : 'light';
+                    localStorage.setItem('theme', theme);
+                }
+                
+                document.documentElement.setAttribute('data-theme', theme);
+            })();
+        });
+    </script>
+</body>
+</html>
