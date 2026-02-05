@@ -919,5 +919,5 @@ def get_anime_details(mal_id):
         app.logger.error(f"Error in /api/anime/{mal_id}: {str(e)}")
         return jsonify({"error": "Внутренняя ошибка сервера"}), 500
 
-if __name__ == '__main__':
-    app.run(debug=app.config['DEBUG'])
+if __name__ == "__main__":
+    app.run(debug=False)  # debug=False для продакшена
