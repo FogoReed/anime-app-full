@@ -770,6 +770,118 @@ def my_anime_ids():
     except Exception as e:
         app.logger.error(f"Error in my_anime_ids: {str(e)}")
         return jsonify({'error': 'Ошибка получения списка аниме'}), 500
+    
+from urllib.parse import quote_plus
+
+@app.route('/api/anime/<int:mal_id>')
+def get_anime_details(mal_id):
+    try:
+        url = f"{JIKAN_BASE}/anime/{mal_id}/full"
+        resp = rate_limited_get(url)
+        
+        if resp is None or resp.status_code != 200:
+            return jsonify({"error": "Не удалось загрузить данные"}), 503
+            
+        data = resp.json()["data"]
+        
+        # Основные поля
+        title_ru   = data.get("title_russian") or data["title"]
+        title_en   = data.get("title_english") or data["title"]
+        title_jp   = data["title_japanese"] or data["title"]
+        title_main = title_ru or title_en or title_jp
+        
+        synopsis = (data.get("synopsis") or "Описание отсутствует").replace("[Written by MAL Rewrite]", "").strip()
+        
+        image = (
+            data["images"]["jpg"].get("large_image_url") or
+            data["images"]["jpg"].get("image_url") or
+            ""
+        )
+        
+        year = data.get("year") or (
+            data.get("aired", {}).get("from", "")[:4] if data.get("aired", {}).get("from") else "—"
+        )
+        
+        # Проверяем, хентай ли это
+        genres = [g['name'].lower() for g in data.get('genres', []) + data.get('explicit_genres', [])]
+        is_hentai = 'hentai' in genres or 'erotica' in genres
+        
+        # Поисковая строка для сайтов
+        q = quote_plus(title_main)
+        
+        # Формируем СПИСОК ссылок в нужном порядке
+        links_list = []
+        
+        # 1. MyAnimeList — всегда первая
+        links_list.append({
+            "url": f"https://myanimelist.net/anime/{mal_id}",
+            "label": "MyAnimeList"
+        })
+        
+        # 2. AnimeGo — если не хентай
+        if not is_hentai:
+            links_list.append({
+                "url": f"https://animego.org/search/anime?q={q}",
+                "label": "AnimeGo (поиск)"
+            })
+        
+        # 3. AnimeLIB — если не хентай
+        if not is_hentai:
+            links_list.append({
+                "url": f"https://anilib.me/ru/catalog?q={q}",
+                "label": "AnimeLIB (поиск)"
+            })
+        
+        # 4. HDRezka — если не хентай
+        if not is_hentai:
+            links_list.append({
+                "url": f"https://hdrezka.ag/search/?do=search&subaction=search&q={q}",
+                "label": "HDRezka (поиск)"
+            })
+        
+        # 5. Shikimori — всегда последняя
+        shiki_label = "Shikimori (поиск)" if not is_hentai else "Shikimori (поиск, требуется регистрация)"
+        links_list.append({
+            "url": f"https://shikimori.one/animes?search={q}",
+            "label": shiki_label
+        })
+
+        # 6. watchhentai.net — ТОЛЬКО для хентая
+        # 6. watchhentai.net — ТОЛЬКО для хентая
+        if is_hentai:
+            # Поиск по основному названию (title_main)
+            links_list.append({
+                "url": f"https://watchhentai.net/?s={q}",
+                "label": "WatchHentai (поиск)"
+            })
+
+            # Дополнительная ссылка — поиск по английскому названию (title_en)
+            if title_en and title_en != title_main:
+                q_en = quote_plus(title_en)
+                links_list.append({
+                    "url": f"https://watchhentai.net/?s={q_en}",
+                    "label": "WatchHentai (поиск EN)"
+                })
+        
+        return jsonify({
+            "mal_id":     mal_id,
+            "title":      title_main,
+            "title_en":   title_en,
+            "title_jp":   title_jp,
+            "title_ru":   title_ru,
+            "image":      image,
+            "score":      data.get("score") or "—",
+            "year":       year,
+            "episodes":   data.get("episodes") or "—",
+            "type":       data.get("type", "—"),
+            "status":     data.get("status", "—"),
+            "synopsis":   synopsis,
+            "links":      links_list   # ← возвращаем именно список!
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error in /api/anime/{mal_id}: {str(e)}")
+        return jsonify({"error": "Внутренняя ошибка сервера"}), 500
 
 if __name__ == '__main__':
     app.run(debug=app.config['DEBUG'])

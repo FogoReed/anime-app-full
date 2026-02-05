@@ -15,6 +15,7 @@
 >
     <div class="container">
         {% include 'includes/header.html' %}
+        {% include 'includes/anime_modal.html' %}
         
         <!-- Search Section -->
         <div class="section" style="padding: 40px 20px;">
@@ -108,6 +109,7 @@
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <script src="{{ url_for('static', filename='js/search.js') }}"></script>
     <script src="{{ url_for('static', filename='js/userState.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     
     <script>
         // Установка темы сразу

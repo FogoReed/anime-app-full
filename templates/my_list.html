@@ -11,6 +11,7 @@
 <body>
     <div class="container">
         {% include 'includes/header.html' %}
+        {% include 'includes/anime_modal.html' %}
     </div>
         
         {% if anime_list %}
@@ -74,6 +75,8 @@
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
     <!-- Подключение основного скрипта для работы со списком -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    
     <script>
         // Минимальный скрипт для предотвращения мигания
         (function() {
