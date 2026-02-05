@@ -98,16 +98,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── Глобальный обработчик кликов ───
     document.addEventListener('click', e => {
-        // Ищем ближайшую карточку (поддерживаем разные классы, которые у тебя есть)
+        if (
+            e.target.closest(
+                'button, a, input, select, textarea, .btn-add, .btn-delete'
+            )
+        ) {
+            return;
+        }
+
         const card = e.target.closest('.card, .anime-card, .list-card-wide, .list-card');
         if (!card) return;
 
-        // Пробуем разные способы достать mal_id
         let malId = card.dataset.malId ||
-                    card.dataset.id ||
-                    card.dataset.animeId;
+            card.dataset.id ||
+            card.dataset.animeId ||
+            card.dataset.malId;
 
-        // Если id лежит внутри data-anime (как в твоём текущем коде)
         if (!malId && card.dataset.anime) {
             try {
                 const animeObj = JSON.parse(decodeURIComponent(card.dataset.anime));
@@ -117,13 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (!malId) {
-            console.warn('Не найден mal_id у карточки', card);
-            return;
-        }
+        if (!malId) return;
 
         e.preventDefault();
-        e.stopPropagation();     // чтобы не срабатывали другие обработчики
         openAnimeModal(malId);
     });
 

@@ -17,7 +17,7 @@
         {% if anime_list %}
         <div class="list-grid">
             {% for anime in anime_list %}
-            <div class="list-card-wide" data-anime-id="{{ anime.id }}">
+            <div class="list-card-wide" data-anime-id="{{ anime.id }}" data-mal-id="{{ anime.mal_id }}">
                 <div class="list-card-left">
                     <img src="{{ anime.image }}" alt="{{ anime.title }}">
                 </div>
@@ -71,9 +71,8 @@
         {% endif %}
     </div>
     
-    <!-- Подключение скрипта темы -->
     <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
-    <!-- Подключение основного скрипта для работы со списком -->
+    <script src="{{ url_for('static', filename='js/userState.js') }}"></script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     

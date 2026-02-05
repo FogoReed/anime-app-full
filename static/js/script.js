@@ -6,22 +6,21 @@ let allowNSFW;
 let currentAnimeList = [];
 
 // Функция инициализации NSFW настроек
+// В начале файла (или в initNSFW)
 function initNSFW() {
     const isLoggedIn = document.body.dataset.userLoggedIn === 'true';
-    const hasNsfwLocal = localStorage.getItem('nsfw_choice') !== null;
-    
+
     if (isLoggedIn) {
-        // Для авторизованных пользователей берем настройки с сервера
+        // Для авторизованных — ТОЛЬКО серверное значение
         allowNSFW = document.body.getAttribute('data-nsfw') === 'true';
-    } else if (hasNsfwLocal) {
-        // Для неавторизованных с сохраненным выбором
-        allowNSFW = localStorage.getItem('nsfw_choice') === 'true';
+        // Игнорируем localStorage полностью
+        console.log('Авторизован → allowNSFW из data-nsfw:', allowNSFW);
     } else {
-        // По умолчанию для новых пользователей
-        allowNSFW = false;
+        // Только для НЕавторизованных — localStorage или дефолт false
+        const hasChoice = localStorage.getItem('nsfw_choice') !== null;
+        allowNSFW = hasChoice ? localStorage.getItem('nsfw_choice') === 'true' : false;
+        console.log('Неавторизован → allowNSFW из localStorage или false:', allowNSFW);
     }
-    
-    console.log('Инициализировано allowNSFW:', allowNSFW);
 }
 
 // Добавьте эту функцию в начало script.js

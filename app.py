@@ -10,7 +10,16 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from config import Config
 from models import db, User, UserAnime
 
+from flask_caching import Cache
+import json
+
 app = Flask(__name__)
+
+cache = Cache(app, config={
+    "CACHE_TYPE": "SimpleCache",
+    "CACHE_DEFAULT_TIMEOUT": 1800  # 30 минут
+})
+
 app.config.from_object(Config)
 
 db.init_app(app)
@@ -74,22 +83,36 @@ def logout():
     return redirect(url_for('index'))
 
 JIKAN_BASE = "https://api.jikan.moe/v4"
-LAST_REQUEST_TIME = 0  # Защита от rate limit Jikan (3 req/sec)
+
+def cached_jikan_get(url, params=None, timeout=1800):
+    key = f"jikan:{url}:{json.dumps(params, sort_keys=True)}"
+
+    cached = cache.get(key)
+    if cached:
+        return cached
+
+    resp = rate_limited_get(url, params)
+    if resp and resp.status_code == 200:
+        cache.set(key, resp, timeout=timeout)
+    return resp
 
 def rate_limited_get(url, params=None, retries=3):
-    global LAST_REQUEST_TIME
-    # Jikan: минимум 0.34 сек между запросами
-    elapsed = time.time() - LAST_REQUEST_TIME
+    key = "jikan_last_request_time"
+    last_time = cache.get(key) or 0
+
+    elapsed = time.time() - last_time
     if elapsed < 0.34:
         time.sleep(0.34 - elapsed)
-    
+
     for attempt in range(retries):
         try:
             resp = requests.get(url, params=params, timeout=10)
-            LAST_REQUEST_TIME = time.time()
-            if resp.status_code == 429:  # Rate limit
+            cache.set(key, time.time(), timeout=5)
+
+            if resp.status_code == 429:
                 time.sleep(2 ** attempt)
                 continue
+
             return resp
         except requests.exceptions.RequestException:
             if attempt == retries - 1:
@@ -101,6 +124,7 @@ def rate_limited_get(url, params=None, retries=3):
 def index():
     return render_template('index.html')
 
+@cache.cached(timeout=300, query_string=True)
 @app.route('/api/search_anime')
 def search_anime():
     # ПАРАМЕТРЫ
@@ -110,9 +134,6 @@ def search_anime():
     order_by = request.args.get('order_by', 'score')
     sort = request.args.get('sort', 'desc')
     sfw_param = request.args.get('sfw', 'true')
-    
-    # УБРАТЬ ВЕСЬ БЛОК ОБРАБОТКИ quick-tags!
-    # НАЧИНАЕМ СРАЗУ С ПРОВЕРКИ query
     
     if not query:
         return jsonify({'data': [], 'pagination': {'has_next_page': False}})
@@ -131,7 +152,7 @@ def search_anime():
         if sfw_param == 'true':
             params['sfw'] = 'true'
             
-        resp = rate_limited_get(f"{JIKAN_BASE}/anime", params)
+        resp = cached_jikan_get(f"{JIKAN_BASE}/anime", params)
         return process_search_response(resp)
     except Exception as e:
         app.logger.error(f"Error in search_anime: {str(e)}")
@@ -223,7 +244,7 @@ def random_anime_filtered():
         query_parts.append(f'limit={min(limit, 25)}')
         
         # Выбираем случайную страницу (Jikan имеет примерно 20 страниц с 25 элементами)
-        random_page = random.randint(1, 20)
+        random_page = random.randint(1, 12)
         query_parts.append(f'page={random_page}')
         
         # Случайный порядок сортировки для разнообразия
@@ -237,9 +258,9 @@ def random_anime_filtered():
         query_string = '&'.join(query_parts)
         url = f"{JIKAN_BASE}/anime?{query_string}"
         
-        print(f"Запрос к Jikan: {url}")  # Для отладки
+        app.logger.debug(f"Запрос к Jikan: {url}")  # Для отладки
         
-        resp = rate_limited_get(url)
+        resp = cached_jikan_get(url)
         
         if resp is None or resp.status_code != 200:
             return jsonify({'error': 'Jikan API временно недоступен'}), 503
@@ -290,17 +311,17 @@ def random_anime_filtered():
             })
         
         # Получаем общее количество (делаем упрощенный запрос)
-        count_url = f"{JIKAN_BASE}/anime?{query_string.split('&page=')[0]}"
-        count_resp = rate_limited_get(count_url)
-        
-        total = len(result)  # По умолчанию
-        if count_resp and count_resp.status_code == 200:
-            count_data = count_resp.json()
-            pagination = count_data.get('pagination', {})
-            if 'items' in pagination and 'total' in pagination['items']:
-                total = pagination['items']['total']
-            elif 'last_visible_page' in pagination:
-                total = pagination['last_visible_page'] * 25  # Приблизительно
+        pagination = json_data.get('pagination', {})
+
+        total = pagination.get('items', {}).get('total')
+
+        # fallback, если Jikan не вернул total
+        if total is None:
+            last_page = pagination.get('last_visible_page')
+            if last_page:
+                total = last_page * 25
+            else:
+                total = len(result)
         
         return jsonify({
             'total': total,
@@ -315,7 +336,7 @@ def random_anime_filtered():
 @login_required
 def set_nsfw():
     data = request.get_json()
-    current_user.nsfw_allowed = bool(data.get('nsfw', False))
+    current_user.nsfw_allowed = data.get('nsfw') is True
     db.session.commit()
     return jsonify({'success': True})
 
@@ -323,10 +344,11 @@ def set_nsfw():
 @login_required
 def settings():
     if request.method == 'POST':
-        # Сохраняем настройки
-        current_user.nsfw_allowed = bool(request.form.get('nsfw_allowed'))
-        current_user.private_account = bool(request.form.get('private_account'))
+        # Для чекбоксов: если поле пришло — значит отмечено
+        current_user.nsfw_allowed = 'nsfw_allowed' in request.form
+        current_user.private_account = 'private_account' in request.form
         current_user.tag = request.form.get('tag', '')
+        
         db.session.commit()
         flash("Настройки сохранены!", "success")
         return redirect(url_for('settings'))
@@ -406,7 +428,7 @@ def delete_from_list():
 @login_required
 def update_status():
     data = request.get_json()
-    print("DATA:", data)
+    app.logger.debug(f"DATA: {data}")
     anime_id = data.get('id')
     status = data.get('status')
     anime = UserAnime.query.filter_by(id=anime_id, user_id=current_user.id).first()
@@ -428,7 +450,15 @@ def update_score():
         user_id=current_user.id
     ).first_or_404()
 
-    anime.score = score if score else None
+    try:
+        score = int(score)
+        if 1 <= score <= 10:
+            anime.score = score
+        else:
+            anime.score = None
+    except:
+        anime.score = None
+
     db.session.commit()
 
     return jsonify({'success': True})
@@ -470,7 +500,7 @@ def toggle_list():
 def update_private():
     data = request.get_json()
     anime_id = data.get('id')
-    is_private = bool(data.get('is_private'))
+    is_private = data.get('is_private') is True
 
     anime = UserAnime.query.filter_by(id=anime_id, user_id=current_user.id).first_or_404()
     anime.is_private = is_private
@@ -603,6 +633,7 @@ def random_page():
 
 # ===== НОВЫЕ ЭНДПОИНТЫ ДЛЯ РЕЙТИНГОВ =====
 
+@cache.cached(timeout=600, query_string=True)
 @app.route('/api/top_anime')
 def top_anime():
     """Строго по рейтингу (MAL score)"""
@@ -617,9 +648,10 @@ def top_anime():
     if sfw_param == 'true':
         params['sfw'] = 'true'
     
-    resp = rate_limited_get(f"{JIKAN_BASE}/top/anime", params)
+    resp = cached_jikan_get(f"{JIKAN_BASE}/top/anime", params)
     return process_search_response(resp)
 
+@cache.cached(timeout=600, query_string=True)
 @app.route('/api/popular_anime')
 def popular_anime():
     """Строго по популярности (MAL ranking)"""
@@ -635,9 +667,10 @@ def popular_anime():
     if sfw_param == 'true':
         params['sfw'] = 'true'
     
-    resp = rate_limited_get(f"{JIKAN_BASE}/top/anime", params)
+    resp = cached_jikan_get(f"{JIKAN_BASE}/top/anime", params)
     return process_search_response(resp)
 
+@cache.cached(timeout=600, query_string=True)
 @app.route('/api/airing_anime')
 def airing_anime():
     """Строго новинки (выходящие сейчас)"""
@@ -653,9 +686,10 @@ def airing_anime():
     if sfw_param == 'true':
         params['sfw'] = 'true'
     
-    resp = rate_limited_get(f"{JIKAN_BASE}/top/anime", params)
+    resp = cached_jikan_get(f"{JIKAN_BASE}/top/anime", params)
     return process_search_response(resp)
 
+@cache.cached(timeout=600, query_string=True)
 @app.route('/api/classic_anime')
 def classic_anime():
     """Классика (до 2000 года с высоким рейтингом)"""
@@ -675,15 +709,16 @@ def classic_anime():
     if sfw_param == 'true':
         params['sfw'] = 'true'
     
-    resp = rate_limited_get(f"{JIKAN_BASE}/anime", params)
+    resp = cached_jikan_get(f"{JIKAN_BASE}/anime", params)
     return process_search_response(resp)
 
+@cache.cached(timeout=86400)
 @app.route('/api/genres')
 def get_genres():
     """Получить список всех жанров"""
     try:
         # Получаем жанры из Jikan API
-        resp = rate_limited_get(f"{JIKAN_BASE}/genres/anime")
+        resp = cached_jikan_get(f"{JIKAN_BASE}/genres/anime")
         if resp and resp.status_code == 200:
             data = resp.json()
             genres = data.get('data', [])
@@ -774,10 +809,11 @@ def my_anime_ids():
 from urllib.parse import quote_plus
 
 @app.route('/api/anime/<int:mal_id>')
+@cache.cached(timeout=3600)
 def get_anime_details(mal_id):
     try:
         url = f"{JIKAN_BASE}/anime/{mal_id}/full"
-        resp = rate_limited_get(url)
+        resp = cached_jikan_get(url)
         
         if resp is None or resp.status_code != 200:
             return jsonify({"error": "Не удалось загрузить данные"}), 503

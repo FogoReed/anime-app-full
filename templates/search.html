@@ -8,10 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
 </head>
-<body
-    data-nsfw="{{ 'true' if current_user.is_authenticated and current_user.nsfw_allowed else '' }}"
-    data-user-logged-in="{{ 'true' if current_user.is_authenticated else 'false' }}"
-    data-page="search"
+<body data-user-logged-in="{{ 'true' if current_user.is_authenticated else 'false' }}"
+      data-nsfw="{{ 'true' if current_user.is_authenticated and current_user.nsfw_allowed else 'false' }}"
+      data-page="search"
 >
     <div class="container">
         {% include 'includes/header.html' %}

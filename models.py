@@ -24,13 +24,8 @@ class User(db.Model, UserMixin):
 class UserAnime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('user.id'),
-        nullable=False
-    )
-
-    mal_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True)
+    mal_id = db.Column(db.Integer, index=True)
 
     # ⬇️ НОВОЕ
     title = db.Column(db.String(255))
